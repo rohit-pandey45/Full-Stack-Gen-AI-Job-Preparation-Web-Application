@@ -1,9 +1,11 @@
 const express = require("express")
+const cookieParser = require("cookie-parser")
 const app = express()
 
 //Middleware to allow reading the data from req.body 
 //(a built-in middleware in Express that parses incoming requests with JSON payloads and makes the data available in req.body)
 app.use(express.json())
+app.use(cookieParser())
 
 /*Required routes */
 const authRouter = require("./routes/auth.routes.js")
