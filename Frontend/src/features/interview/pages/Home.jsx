@@ -22,6 +22,7 @@ const Home = () => {
         alert("Please upload a resume OR provide a quick self-description.");
         return;
       }
+      
       const data = await generateReport({
         jobDescription,
         selfDescription,
@@ -32,7 +33,20 @@ const Home = () => {
       
       if (!data) return;
 
-      navigate("/interview", { state: data });
+      // 🚀 FIXED: Safely extract the database ID from the nested object structure
+      const targetId = 
+        data?._id || 
+        data?.id || 
+        data?.interviewReport?._id || 
+        data?.interviewReport?.id;
+
+      if (targetId) {
+        // 🚀 FIXED: Redirect directly to your dynamic path layout structure
+        navigate(`/interview/${targetId}`);
+      } else {
+        console.warn("Could not extract ID key from data bundle structure. Object:", data);
+        alert("Report generated successfully, but the system failed to read the landing ID.");
+      }
     } catch (err) {
       console.log("Generate report failed:", err);
     }
@@ -239,12 +253,11 @@ const Home = () => {
       </div>
 
       {/* Recent Reports List */}
-      {reports.length > 0 && (
+      {reports && reports.length > 0 && (
         <section className="recent-reports">
           <h2>My Recent Interview Plans</h2>
           <ul className="reports-list">
             {reports.map((item) => {
-              // 🚀 Fallback checks for safe data reading across varying keys
               const displayScore = item.matchScore ?? item.match_score ?? item.score ?? 0;
               const displayTitle = item.title ?? item.jobTitle ?? item.job_title ?? "Default Job Title";
               const displayDate = item.createdAt ?? item.created_at ?? new Date();
