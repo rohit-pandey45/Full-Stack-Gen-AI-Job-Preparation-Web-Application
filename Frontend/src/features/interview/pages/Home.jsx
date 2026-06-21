@@ -17,8 +17,9 @@ const Home = () => {
       jobDescription,
       selfDescription,
       resumeFile,
-    });
-    navigate(`/interview/${data._id}`);
+    })
+    console.log("DATA =", data);
+    navigate(`/interview/${data._id}`)
   };
 
   if (loading) {
