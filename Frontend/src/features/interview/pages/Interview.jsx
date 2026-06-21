@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import '../style/interview.scss'
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate, useParams } from 'react-router-dom'
-
+import { useLocation } from 'react-router-dom'
 
 
 const NAV_ITEMS = [
@@ -10,6 +10,52 @@ const NAV_ITEMS = [
     { id: 'behavioral', label: 'Behavioral Questions', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>) },
     { id: 'roadmap', label: 'Road Map', icon: (<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11" /></svg>) },
 ]
+
+// ── Data Transformation Helpers ──────────────────────────────────────────────
+const parseQuestionsArray = (flatArray) => {
+    if (!flatArray || !Array.isArray(flatArray)) return [];
+    const formatted = [];
+    for (let i = 0; i < flatArray.length; i += 6) {
+        if (flatArray[i + 1]) {
+            formatted.push({
+                question: flatArray[i + 1],
+                intention: flatArray[i + 3] || '',
+                answer: flatArray[i + 5] || ''
+            });
+        }
+    }
+    return formatted;
+};
+
+const parseRoadmapArray = (flatArray) => {
+    if (!flatArray || !Array.isArray(flatArray)) return [];
+    const formatted = [];
+    for (let i = 0; i < flatArray.length; i += 6) {
+        if (flatArray[i + 1]) {
+            formatted.push({
+                day: flatArray[i + 1],
+                focus: flatArray[i + 3] || '',
+                tasks: typeof flatArray[i + 5] === 'string' ? [flatArray[i + 5]] : (flatArray[i + 5] || [])
+            });
+        }
+    }
+    return formatted;
+};
+
+const parseSkillGapsArray = (flatArray) => {
+    if (!flatArray || !Array.isArray(flatArray)) return [];
+    const formatted = [];
+    for (let i = 0; i < flatArray.length; i += 4) {
+        if (flatArray[i + 1]) {
+            formatted.push({
+                skill: flatArray[i + 1],
+                severity: flatArray[i + 3] || 'low'
+            });
+        }
+    }
+    return formatted;
+};
+
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 const QuestionCard = ({ item, index }) => {
@@ -63,12 +109,13 @@ const Interview = () => {
     const { interviewId } = useParams()
 
     useEffect(() => {
-        if (interviewId) {
-            getReportById(interviewId)
+        // 🚀 ONLY fetch from the backend on refresh if the context doesn't already have the report loaded from localStorage
+        if (interviewId && !report) {
+            getReportById(interviewId).catch(err => {
+                console.error("Could not fetch report on page reload:", err)
+            })
         }
-    }, [ interviewId ])
-
-
+    }, [ interviewId, report ])
 
     if (loading || !report) {
         return (
@@ -78,10 +125,15 @@ const Interview = () => {
         )
     }
 
+    // Transform flat arrays into structured component objects safely
+    const technicalQuestions = parseQuestionsArray(report.technicalQuestions);
+    const behavioralQuestions = parseQuestionsArray(report.behavioralQuestions);
+    const preparationPlan = parseRoadmapArray(report.preparationPlan);
+    const skillGaps = parseSkillGapsArray(report.skillGaps);
+
     const scoreColor =
         report.matchScore >= 80 ? 'score--high' :
             report.matchScore >= 60 ? 'score--mid' : 'score--low'
-
 
     return (
         <div className='interview-page'>
@@ -118,10 +170,10 @@ const Interview = () => {
                         <section>
                             <div className='content-header'>
                                 <h2>Technical Questions</h2>
-                                <span className='content-header__count'>{report.technicalQuestions.length} questions</span>
+                                <span className='content-header__count'>{technicalQuestions.length} questions</span>
                             </div>
                             <div className='q-list'>
-                                {report.technicalQuestions.map((q, i) => (
+                                {technicalQuestions.map((q, i) => (
                                     <QuestionCard key={i} item={q} index={i} />
                                 ))}
                             </div>
@@ -132,10 +184,10 @@ const Interview = () => {
                         <section>
                             <div className='content-header'>
                                 <h2>Behavioral Questions</h2>
-                                <span className='content-header__count'>{report.behavioralQuestions.length} questions</span>
+                                <span className='content-header__count'>{behavioralQuestions.length} questions</span>
                             </div>
                             <div className='q-list'>
-                                {report.behavioralQuestions.map((q, i) => (
+                                {behavioralQuestions.map((q, i) => (
                                     <QuestionCard key={i} item={q} index={i} />
                                 ))}
                             </div>
@@ -146,11 +198,11 @@ const Interview = () => {
                         <section>
                             <div className='content-header'>
                                 <h2>Preparation Road Map</h2>
-                                <span className='content-header__count'>{report.preparationPlan.length}-day plan</span>
+                                <span className='content-header__count'>{preparationPlan.length}-day plan</span>
                             </div>
                             <div className='roadmap-list'>
-                                {report.preparationPlan.map((day) => (
-                                    <RoadMapDay key={day.day} day={day} />
+                                {preparationPlan.map((day, i) => (
+                                    <RoadMapDay key={i} day={day} />
                                 ))}
                             </div>
                         </section>
@@ -178,7 +230,7 @@ const Interview = () => {
                     <div className='skill-gaps'>
                         <p className='skill-gaps__label'>Skill Gaps</p>
                         <div className='skill-gaps__list'>
-                            {report.skillGaps.map((gap, i) => (
+                            {skillGaps.map((gap, i) => (
                                 <span key={i} className={`skill-tag skill-tag--${gap.severity}`}>
                                     {gap.skill}
                                 </span>

@@ -1,4 +1,4 @@
-import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api.js"
+import { getAllInterviewReports, generateInterviewReport, getInterviewReportById, generateResumePdf } from "../services/interview.api"
 import { useContext, useEffect } from "react"
 import { InterviewContext } from "../interview.context.jsx"
 import { useParams } from "react-router-dom"

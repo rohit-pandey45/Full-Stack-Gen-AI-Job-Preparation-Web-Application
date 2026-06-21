@@ -1,4 +1,4 @@
-import React,{ useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "../style/home.scss";
 import { useNavigate } from "react-router-dom";
 import { useInterview } from "../hooks/useInterview.js";
@@ -12,14 +12,30 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleGenerateReport = async () => {
-    const resumeFile = resumeInputRef.current.files[0];
-    const data = await generateReport({
-      jobDescription,
-      selfDescription,
-      resumeFile,
-    })
-    console.log("DATA =", data);
-    navigate(`/interview/${data._id}`)
+    try {
+      const resumeFile = resumeInputRef.current.files[0] || null;
+      if (!jobDescription.trim()) {
+        alert("Please enter a Target Job Description.");
+        return;
+      }
+      if (!resumeFile && !selfDescription.trim()) {
+        alert("Please upload a resume OR provide a quick self-description.");
+        return;
+      }
+      const data = await generateReport({
+        jobDescription,
+        selfDescription,
+        resumeFile,
+      });
+
+      console.log("DATA =", data);
+      
+      if (!data) return;
+
+      navigate("/interview", { state: data });
+    } catch (err) {
+      console.log("Generate report failed:", err);
+    }
   };
 
   if (loading) {
@@ -76,7 +92,7 @@ const Home = () => {
               placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
               maxLength={5000}
             />
-            <div className="char-counter">0 / 5000 chars</div>
+            <div className="char-counter">{jobDescription.length} / 5000 chars</div>
           </div>
 
           {/* Vertical Divider */}
@@ -227,23 +243,30 @@ const Home = () => {
         <section className="recent-reports">
           <h2>My Recent Interview Plans</h2>
           <ul className="reports-list">
-            {reports.map((report) => (
-              <li
-                key={report._id}
-                className="report-item"
-                onClick={() => navigate(`/interview/${report._id}`)}
-              >
-                <h3>{report.title || "Untitled Position"}</h3>
-                <p className="report-meta">
-                  Generated on {new Date(report.createdAt).toLocaleDateString()}
-                </p>
-                <p
-                  className={`match-score ${report.matchScore >= 80 ? "score--high" : report.matchScore >= 60 ? "score--mid" : "score--low"}`}
+            {reports.map((item) => {
+              // 🚀 Fallback checks for safe data reading across varying keys
+              const displayScore = item.matchScore ?? item.match_score ?? item.score ?? 0;
+              const displayTitle = item.title ?? item.jobTitle ?? item.job_title ?? "Default Job Title";
+              const displayDate = item.createdAt ?? item.created_at ?? new Date();
+
+              return (
+                <li
+                  key={item._id}
+                  className="report-item"
+                  onClick={() => navigate(`/interview/${item._id}`)}
                 >
-                  Match Score: {report.matchScore}%
-                </p>
-              </li>
-            ))}
+                  <h3>{displayTitle}</h3>
+                  <p className="report-meta">
+                    Generated on {new Date(displayDate).toLocaleDateString()}
+                  </p>
+                  <p
+                    className={`match-score ${displayScore >= 80 ? "score--high" : displayScore >= 60 ? "score--mid" : "score--low"}`}
+                  >
+                    Match Score: {displayScore}%
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
