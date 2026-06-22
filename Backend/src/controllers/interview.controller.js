@@ -1,26 +1,17 @@
 const pdfParse = require("pdf-parse");
-const {
-  generateInterviewReport,
-  generateResumePdf,
-} = require("../services/ai.service.js");
+const { generateInterviewReport, generateResumePdf } = require("../services/ai.service.js");
 const interviewReportModel = require("../models/interviewReport.model.js");
 
-/**
- * @description Controller to generate interview report based on user self description, resume and job description.
- */
 async function generateInterViewReportController(req, res) {
   try {
-    // 🚀 FIXED: Call pdfParse directly as a function!
-    if (!req.file) {
-      return res.status(400).json({ message: "Resume file is required." });
+    let resumeText = "";
+    if (req.file && req.file.buffer) {
+      const resumeContent = await pdfParse(req.file.buffer);  // ✅ call directly
+      resumeText = resumeContent.text;
     }
-
-    const resumeContent = await pdfParse(req.file.buffer);
-    const resumeText = resumeContent.text; // This gets the parsed text string safely
 
     const { selfDescription, jobDescription } = req.body;
 
-    // Pass the clean text string to your AI service
     const interViewReportByAi = await generateInterviewReport({
       resume: resumeText,
       selfDescription,
@@ -38,11 +29,9 @@ async function generateInterViewReportController(req, res) {
     res.status(201).json({ interviewReport });
   } catch (error) {
     console.error("Backend Generation Crash:", error);
-    res
-      .status(500)
-      .json({
-        message: "Internal Server Error processing PDF or AI generation.",
-      });
+    res.status(500).json({
+      message: "Internal Server Error processing PDF or AI generation.",
+    });
   }
 }
 

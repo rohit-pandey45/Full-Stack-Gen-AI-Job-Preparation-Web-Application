@@ -1,14 +1,16 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import "../style/home.scss";
 import { useNavigate } from "react-router-dom";
 import { useInterview } from "../hooks/useInterview.js";
 
 const Home = () => {
-  const { loading, generateReport, reports } = useInterview();
+  const { loading, generateReport, reports, getReports } = useInterview();
   const [jobDescription, setJobDescription] = useState("");
   const [selfDescription, setSelfDescription] = useState("");
   const resumeInputRef = useRef();
-
+  useEffect(() => {
+    getReports();
+  }, []);
   const navigate = useNavigate();
 
   const handleGenerateReport = async () => {
@@ -22,7 +24,7 @@ const Home = () => {
         alert("Please upload a resume OR provide a quick self-description.");
         return;
       }
-      
+
       const data = await generateReport({
         jobDescription,
         selfDescription,
@@ -30,22 +32,27 @@ const Home = () => {
       });
 
       console.log("DATA =", data);
-      
+
       if (!data) return;
 
       // 🚀 FIXED: Safely extract the database ID from the nested object structure
-      const targetId = 
-        data?._id || 
-        data?.id || 
-        data?.interviewReport?._id || 
+      const targetId =
+        data?._id ||
+        data?.id ||
+        data?.interviewReport?._id ||
         data?.interviewReport?.id;
 
       if (targetId) {
         // 🚀 FIXED: Redirect directly to your dynamic path layout structure
         navigate(`/interview/${targetId}`);
       } else {
-        console.warn("Could not extract ID key from data bundle structure. Object:", data);
-        alert("Report generated successfully, but the system failed to read the landing ID.");
+        console.warn(
+          "Could not extract ID key from data bundle structure. Object:",
+          data,
+        );
+        alert(
+          "Report generated successfully, but the system failed to read the landing ID.",
+        );
       }
     } catch (err) {
       console.log("Generate report failed:", err);
@@ -106,7 +113,9 @@ const Home = () => {
               placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
               maxLength={5000}
             />
-            <div className="char-counter">{jobDescription.length} / 5000 chars</div>
+            <div className="char-counter">
+              {jobDescription.length} / 5000 chars
+            </div>
           </div>
 
           {/* Vertical Divider */}
@@ -258,9 +267,15 @@ const Home = () => {
           <h2>My Recent Interview Plans</h2>
           <ul className="reports-list">
             {reports.map((item) => {
-              const displayScore = item.matchScore ?? item.match_score ?? item.score ?? 0;
-              const displayTitle = item.title ?? item.jobTitle ?? item.job_title ?? "Default Job Title";
-              const displayDate = item.createdAt ?? item.created_at ?? new Date();
+              const displayScore =
+                item.matchScore ?? item.match_score ?? item.score ?? 0;
+              const displayTitle =
+                item.title ??
+                item.jobTitle ??
+                item.job_title ??
+                "Default Job Title";
+              const displayDate =
+                item.createdAt ?? item.created_at ?? new Date();
 
               return (
                 <li
