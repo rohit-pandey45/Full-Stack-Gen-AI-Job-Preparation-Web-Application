@@ -1,32 +1,5 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-/**
- * - job description schema: string
- * - resume text: string
- * - Self Description: string
- * - Overall Score : Number
- * - Technical Question : [{
- *  question : "",
- *  intentions: ""
- *  answers: "",
- * }]
- * - Behavioral Question : [{
- *  question : "",
- *  intentions: ""
- *  answers: "",
- * }]
- * - Skill Gaps : [{
- *  skill: "",
- *  severity: {
- *  type: String,
- *  enum: ["low","medium","high"]}
- * }]
- * - preparation plan : [{Day 1},{2},{3},{
- *  day: Number,
- *  focus: String,
- *  tasks:[string]
- * }] Day wise plan
- */
 
 const technicalQuestionSchema = new mongoose.Schema({
     question: {
@@ -124,6 +97,6 @@ const interviewReportSchema = new mongoose.Schema({
 })
 
 
-
 const interviewReportModel = mongoose.model("InterviewReport", interviewReportSchema);
+
 module.exports = interviewReportModel;  
