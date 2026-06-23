@@ -25,7 +25,7 @@ const Register = () => {
   return (
     <main>
         <div className="form-container">
-            <h1>Register</h1>
+            <h1>Create Account</h1>
             <form onSubmit={handleSubmit}>
             <div className="input-group">
                 <label htmlFor="email">Username</label>

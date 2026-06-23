@@ -8,7 +8,9 @@ async function connectToDB() {
 
         console.log("Connected to Database")
     } catch (err) {
-        console.error("Mongo Error:", err);
+        console.error("Mongo Error:", err.message);
+
+        process.exit(1);
     }
 }
 

@@ -7,6 +7,22 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GOOGLE_GENAI_API_KEY,
 });
 
+const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+const withRetry = async (fn, retries = 3) => {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err?.status === 429 && retries > 0) {
+      const wait = 1000 * Math.pow(2, 3 - retries);
+      console.log(`Rate limited. Retrying in ${wait}ms...`);
+      await delay(wait);
+      return withRetry(fn, retries - 1);
+    }
+    throw err;
+  }
+};
+
 const interviewReportSchema = z.object({
   matchScore: z
     .number()
@@ -98,7 +114,6 @@ async function generateInterviewReport({
   selfDescription,
   jobDescription,
 }) {
-
   const prompt = `
 Generate an interview preparation report.
 
@@ -162,14 +177,23 @@ Job Description:
 ${jobDescription}
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      //responseSchema: zodToJsonSchema(interviewReportSchema),
-    },
-  });
+  const response = await withRetry(() =>
+    ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    }),
+  );
+  // const response = await ai.models.generateContent({
+  //   model: "gemini-2.5-flash",
+  //   contents: prompt,
+  //   config: {
+  //     responseMimeType: "application/json",
+  //     //responseSchema: zodToJsonSchema(interviewReportSchema),
+  //   },
+  // });
 
   console.log("GEMINI RAW RESPONSE:");
   console.log(response.text);
@@ -204,20 +228,14 @@ ${jobDescription}
     }));
   }
 
-  if (
-    json.skillGaps &&
-    typeof json.skillGaps[0] === "string"
-  ) {
+  if (json.skillGaps && typeof json.skillGaps[0] === "string") {
     json.skillGaps = json.skillGaps.map((skill) => ({
       skill,
       severity: "medium",
     }));
   }
 
-  if (
-    json.preparationPlan &&
-    typeof json.preparationPlan[0] === "string"
-  ) {
+  if (json.preparationPlan && typeof json.preparationPlan[0] === "string") {
     json.preparationPlan = json.preparationPlan.map((item, index) => ({
       day: index + 1,
       focus: item,
@@ -279,15 +297,24 @@ async function generateResumePdf({ resume, selfDescription, jobDescription }) {
                         The resume should not be so lengthy, it should ideally be 1-2 pages long when converted to PDF. Focus on quality rather than quantity and make sure to include all the relevant information that can increase the candidate's chances of getting an interview call for the given job description.
                     `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: zodToJsonSchema(resumePdfSchema),
-    },
-  });
-
+  // const response = await ai.models.generateContent({
+  //   model: "gemini-2.5-flash",
+  //   contents: prompt,
+  //   config: {
+  //     responseMimeType: "application/json",
+  //     responseSchema: zodToJsonSchema(resumePdfSchema),
+  //   },
+  // });
+  const response = await withRetry(() =>
+    ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: zodToJsonSchema(resumePdfSchema),
+      },
+    }),
+  );
   const jsonContent = JSON.parse(response.text);
 
   const pdfBuffer = await generatePdfFromHtml(jsonContent.html);

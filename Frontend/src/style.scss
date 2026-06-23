@@ -1,20 +1,89 @@
 @use "./style/button.scss";
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+
+
 * {
-    margin: 0%;
-    padding: 0%;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html,
 body,
 #root {
-    width: 100%;
-    background-color: #161616;
-    color: whitesmoke;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  width: 100%;
+  min-height: 100vh;
+
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #111827 50%,
+    #1e1b4b 100%
+  );
+
+  color: #f8fafc;
+
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
 }
 
-.highlight{
-    color: #d20d3b;
+.highlight {
+  color: #6366f1;
 }
+
+// Fix for browser autofill white background
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  // Keeps the input text color white
+  -webkit-text-fill-color: #f8fafc !important;
+  
+  // Forces the background to match your dark template using a large inset shadow
+  // Adjust #1e2640 to match your exact card input background if needed
+  box-shadow: inset 0 0 0 1000px #1e2640 !important;
+  
+  // Prevents the background from snapping back to white on click/focus
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// @use "./style/button.scss";
+
+// * {
+//     margin: 0%;
+//     padding: 0%;
+//     box-sizing: border-box;
+// }
+
+// html,
+// body,
+// #root {
+//     width: 100%;
+//     background-color: #161616;
+//     color: whitesmoke;
+//     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+// }
+
+// .highlight{
+//     color: #d20d3b;
+// }

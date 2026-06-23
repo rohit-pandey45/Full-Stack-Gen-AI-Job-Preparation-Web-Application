@@ -1,20 +1,33 @@
-.button{
+@use "sass:color";
+.button {
+  border: none;
+  outline: none;
+  padding-inline: 1.5rem;
+  padding-block: 0.75rem;
+  border-radius: 1rem;
+  cursor: pointer;
 
-    border: none;
-    outline: none;
-    padding-inline: 1.5rem;
-    padding-block: 0.75rem;
-    border-radius: 1rem;
-    cursor: pointer;
+  transition: all 0.3s ease-in-out;
 
-    transition: all 0.3s ease-in-out;
+  &.primary-button {
+    background: linear-gradient(
+      135deg,
+      #6366f1,
+      #8b5cf6
+    );
 
-    &.primary-button{
-        background-color: #e1034d;
-        color: white;
+    color: white;
+    font-weight: 600;
+
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(99, 102, 241, 0.4);
     }
+  }
 
-    &:active{
-        transform: scale(0.9);
-    }
+  &:active {
+    transform: scale(0.96);
+  }
 }
