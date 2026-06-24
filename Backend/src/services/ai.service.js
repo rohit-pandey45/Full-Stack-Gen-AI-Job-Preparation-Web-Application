@@ -13,12 +13,21 @@ const withRetry = async (fn, retries = 3) => {
   try {
     return await fn();
   } catch (err) {
-    if (err?.status === 429 && retries > 0) {
-      const wait = 1000 * Math.pow(2, 3 - retries);
-      console.log(`Rate limited. Retrying in ${wait}ms...`);
+    const isRetryable = err?.status === 429 || err?.status === 503;
+    if (isRetryable && retries > 0) {
+      const wait = 4000 * Math.pow(2, 3 - retries);
+      console.log(`Gemini status ${err.status}. Retrying in ${wait}ms...`);
       await delay(wait);
       return withRetry(fn, retries - 1);
     }
+    //throw err;
+    if (isRetryable) {
+      throw {
+        status: err.status,
+        message: "Gemini is currently overloaded or experiencing timeouts. Please try again later.",
+      };
+    }
+
     throw err;
   }
 };

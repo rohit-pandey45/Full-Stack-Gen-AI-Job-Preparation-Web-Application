@@ -32,7 +32,7 @@ async function generateInterViewReportController(req, res, next) {
       jobDescription,
     });
     console.log("RAW AI RESPONSE:");
-console.log(interViewReportByAi);
+    console.log(interViewReportByAi);
 
     // 1. Ensure we are dealing with an object (in case the AI returned a raw JSON string)
     let reportData = {};
@@ -69,9 +69,19 @@ console.log(JSON.stringify(reportData, null, 2));
       interviewReport,
     });
   } catch (err) {
-    next(err);
-  }
-}
+
+    console.error(err);
+
+    if (err?.status === 429) {
+        return res.status(429).json({
+            message: "Gemini is overloaded. Please try again later."
+        });
+    }
+
+    return res.status(500).json({
+        message: err.message || "Failed to generate interview report."
+    });
+}}
 
 /**
  * @description Controller to get interview report by interviewId.
@@ -159,4 +169,4 @@ module.exports = {
   getInterviewReportByIdController,
   getAllInterviewReportsController,
   generateResumePdfController,
-};
+}
