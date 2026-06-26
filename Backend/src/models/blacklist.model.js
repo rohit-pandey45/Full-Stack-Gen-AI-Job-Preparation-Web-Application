@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-// ✅ blacklist.model.js
+//blacklist.model.js
 
 const blacklistTokenSchema = new mongoose.Schema({
   token: {
@@ -10,7 +10,7 @@ const blacklistTokenSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 86400, // ← MongoDB auto-deletes document after 24 hours (matches JWT expiry)
+    expires: 86400, //  MongoDB auto-deletes document after 24 hours (matches JWT expiry)
   },
 });
 // Note: remove { timestamps: true } since we're managing createdAt manually

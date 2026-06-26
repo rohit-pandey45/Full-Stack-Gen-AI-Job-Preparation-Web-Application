@@ -18,7 +18,7 @@ async function generateInterViewReportController(req, res, next) {
       });
     }
 
-    // ✅ unpdf usage
+    //unpdf usage
     const { text: resumeText } = await extractText(
       new Uint8Array(req.file.buffer),
       { mergePages: true },
@@ -34,7 +34,7 @@ async function generateInterViewReportController(req, res, next) {
     console.log("RAW AI RESPONSE:");
     console.log(interViewReportByAi);
 
-    // 1. Ensure we are dealing with an object (in case the AI returned a raw JSON string)
+    // 1. Ensuring we are dealing with an object (in case the AI returned a raw JSON string)
     let reportData = {};
     try {
       reportData =
@@ -51,7 +51,7 @@ console.log(JSON.stringify(reportData, null, 2));
     const extractedTitle =
       reportData?.title || reportData?.jobTitle || reportData?.job_role;
 
-    // 3. Create a final fallback so Mongoose NEVER throws a ValidationError
+    // 3. Creating a final fallback so Mongoose NEVER throws a ValidationError
     const finalTitle =
       extractedTitle || `Interview Report - ${new Date().toLocaleDateString()}`;
 

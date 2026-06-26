@@ -209,12 +209,12 @@ ${jobDescription}
     },
   });
 
-  console.log("GEMINI RAW RESPONSE:");
-  console.log(response.text);
+  //console.log("GEMINI RAW RESPONSE:");
+  //console.log(response.text);
 
   const json = JSON.parse(response.text);
 
-  console.log("FIELDS RECEIVED:");
+  //console.log("FIELDS RECEIVED:");
   console.log(Object.keys(json));
 
   // Fix Gemini returning strings instead of objects
