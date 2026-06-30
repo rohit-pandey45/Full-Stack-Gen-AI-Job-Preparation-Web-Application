@@ -64,3 +64,12 @@ export async function getMe() {
     }
 
 }
+
+export async function googleLogin(credential) {
+  try {
+    const response = await api.post("/api/auth/google", { credential });
+    return response.data;
+  } catch (err) {
+    console.log(err);
+  }
+}

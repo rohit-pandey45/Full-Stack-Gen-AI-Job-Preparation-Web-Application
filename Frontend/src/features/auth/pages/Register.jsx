@@ -1,7 +1,7 @@
 import React,{useState} from 'react'
 import { useNavigate,Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth.js'
-
+import { GoogleLogin } from '@react-oauth/google'
 
 const Register = () => {
 
@@ -10,12 +10,17 @@ const Register = () => {
     const [ email, setEmail ] = useState("")
     const [ password, setPassword ] = useState("")
 
-    const {loading,handleRegister} = useAuth()
+    const {loading,handleRegister,handleGoogleLogin} = useAuth()
     
     const handleSubmit = async (e) => {
         e.preventDefault()
         await handleRegister({username,email,password})
         navigate("/")
+    }
+
+     const handleGoogleSuccess = async (credentialResponse) => {
+        await handleGoogleLogin(credentialResponse.credential)
+        navigate('/')
     }
 
     if(loading){
@@ -47,6 +52,12 @@ const Register = () => {
             </div>
             <button className='button primary-button'>Register</button>
             </form>
+            <div className="divider">or</div>
+
+                <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => console.log("Google Registration Failed")}
+                />
             <p>Already have an account? <Link to={"/login"} >Login</Link> </p>
         </div>
     </main>
