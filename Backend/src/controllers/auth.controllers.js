@@ -2,6 +2,10 @@ const userModel = require("../models/user.model.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const tokenBlacklistModel = require("../models/blacklist.model.js");
+const { OAuth2Client } = require("google-auth-library");
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
 
 /**
  * @name registerUserController
@@ -126,9 +130,67 @@ async function getMeController(req, res, next) {
   }
 }
 
+
+/**
+ * @name googleAuthController
+ * @description login or register a user using Google ID token
+ * @access Public
+ */
+async function googleAuthController(req, res, next) {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name } = payload;
+
+    let user = await userModel.findOne({ $or: [{ googleId }, { email }] });
+
+    if (!user) {
+      // create a unique username from email/name
+      let baseUsername = (name || email.split("@")[0]).replace(/\s+/g, "").toLowerCase();
+      let username = baseUsername;
+      let count = 1;
+      while (await userModel.findOne({ username })) {
+        username = `${baseUsername}${count++}`;
+      }
+
+      user = await userModel.create({ username, email, googleId });
+    } else if (!user.googleId) {
+      // existing email/password user signing in with Google for the first time
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+
+    res.status(200).json({
+      message: "User logged in with Google successfully",
+      user: { id: user._id, username: user.username, email: user.email },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   registerUserController,
   loginUserController,
   logoutUserController,
   getMeController,
+  googleAuthController,
 };

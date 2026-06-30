@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const authController = require("../controllers/auth.controllers.js");
 const authMiddleware = require("../middlewares/auth.middleware.js");
-
+const { googleAuthController } = require("../controllers/auth.controllers.js")
 const authRouter = Router();
 
 /**
@@ -35,5 +35,7 @@ authRouter.get(
   authMiddleware.authUser,
   authController.getMeController,
 );
+
+authRouter.post("/google", googleAuthController);
 
 module.exports = authRouter;

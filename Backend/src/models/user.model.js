@@ -16,9 +16,17 @@ const userSchema = new mongoose.Schema({
 
     password: {
         type: String,
-        required: true,
+        //required: true,
+        required: function () {
+            return !this.googleId // only required if not a Google user
+        },
         select: false,
-    }
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true, // allows multiple docs without googleId
+    },
 })
 
 const userModel = mongoose.model("users", userSchema)
