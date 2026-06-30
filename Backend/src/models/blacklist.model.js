@@ -13,7 +13,7 @@ const blacklistTokenSchema = new mongoose.Schema({
     expires: 86400, //  MongoDB auto-deletes document after 24 hours (matches JWT expiry)
   },
 });
-// Note: remove { timestamps: true } since we're managing createdAt manually
+// Note: removed { timestamps: true } since we're managing createdAt manually
 
 const tokenBlacklistModel = mongoose.model(
   "blacklistTokens",
