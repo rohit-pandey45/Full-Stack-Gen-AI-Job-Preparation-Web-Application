@@ -5,8 +5,6 @@ const tokenBlacklistModel = require("../models/blacklist.model.js");
 const { OAuth2Client } = require("google-auth-library");
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-
-
 /**
  * @name registerUserController
  * @description register a new user, expects username, email and password in the request body
@@ -39,11 +37,17 @@ async function registerUserController(req, res, next) {
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
-    res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    //res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    const isProduction = process.env.NODE_ENV === "production";
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "strict",
+      secure: isProduction,
+    });
     res.status(201).json({
       message: "User registered successfully",
       user: { id: user._id, username: user.username, email: user.email },
@@ -77,11 +81,17 @@ async function loginUserController(req, res, next) {
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
-    res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    //res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    const isProduction = process.env.NODE_ENV === "production";
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "strict",
+      secure: isProduction,
+    });
     res.status(200).json({
       message: "User loggedIn successfully.",
       user: { id: user._id, username: user.username, email: user.email },
@@ -104,8 +114,11 @@ async function logoutUserController(req, res, next) {
       await tokenBlacklistModel.create({ token });
     }
 
-    res.clearCookie("token");
-
+    //res.clearCookie("token");
+    res.clearCookie("token", {
+      sameSite: isProduction ? "none" : "strict",
+      secure: isProduction,
+    });
     res.status(200).json({ message: "User logged out successfully" });
   } catch (err) {
     next(err);
@@ -129,7 +142,6 @@ async function getMeController(req, res, next) {
     next(err);
   }
 }
-
 
 /**
  * @name googleAuthController
@@ -156,7 +168,9 @@ async function googleAuthController(req, res, next) {
 
     if (!user) {
       // create a unique username from email/name
-      let baseUsername = (name || email.split("@")[0]).replace(/\s+/g, "").toLowerCase();
+      let baseUsername = (name || email.split("@")[0])
+        .replace(/\s+/g, "")
+        .toLowerCase();
       let username = baseUsername;
       let count = 1;
       while (await userModel.findOne({ username })) {
@@ -173,11 +187,17 @@ async function googleAuthController(req, res, next) {
     const token = jwt.sign(
       { id: user._id, username: user.username },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
-    res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    //res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    const isProduction = process.env.NODE_ENV === "production";
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: isProduction ? "none" : "strict",
+      secure: isProduction,
+    });
     res.status(200).json({
       message: "User logged in with Google successfully",
       user: { id: user._id, username: user.username, email: user.email },
